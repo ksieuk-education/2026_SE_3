@@ -1,0 +1,167 @@
+version: 3
+
+silent: true
+
+vars:
+  ROOT_NENV: "../node_modules"
+  PENV: ".venv"
+
+  SOURCE_FOLDERS: "bin lib"
+  TOML_FILES: "pyproject.toml poetry.toml"
+  SORT_ALL_FILES:
+    sh: find {{.SOURCE_FOLDERS}} -name '*.py' | grep -v '__init__.py' | tr '\n' ' '
+  TEST_FOLDER: "tests"
+
+  SETTINGS_FOLDER: "{{.TASKFILE_DIR}}/.configs"
+
+env:
+  SETTINGS_PATH: "{{.SETTINGS_FOLDER}}/dev.yaml"
+
+tasks:
+  _python:
+    internal: true
+    cmds:
+      - "{{.PENV}}/bin/python {{.COMMAND}}"
+    dotenv:
+      - "{{.DOCKER_FOLDER}}/.env"
+
+  _pyright:
+    internal: true
+    cmds:
+      - "{{.PENV}}/bin/pyright {{.COMMAND}}"
+
+  _ruff:
+    internal: true
+    cmds:
+      - "{{.PENV}}/bin/ruff {{.COMMAND}}"
+
+  _toml-sort:
+    internal: true
+    cmds:
+      - "{{.PENV}}/bin/toml-sort {{.COMMAND}}"
+
+  _sort_all:
+    internal: true
+    cmds:
+      - cmd: "{{.PENV}}/bin/sort-all {{.COMMAND}}"
+
+  _deptry:
+    internal: true
+    cmds:
+      - "{{.PENV}}/bin/deptry {{.COMMAND}}"
+
+  init:
+    desc: Initialize environment
+    cmds:
+      - echo 'Installing python dependencies...'
+      - poetry install
+        --no-root
+        --with dev
+
+  lint:
+    desc: Run lint checks
+    cmds:
+      - echo 'Running poetry checks...'
+      - poetry check
+
+      - echo 'Running toml-sort checks...'
+      - task: _toml-sort
+        vars: { COMMAND: "--check {{.TOML_FILES}}" }
+
+      - echo 'Running sort-all checks...'
+      - task: _sort_all
+        vars: { COMMAND: "--check {{.SORT_ALL_FILES}}" }
+      - echo ''
+
+      - echo 'Running ruff checks...'
+      - task: _python
+        vars: { COMMAND: "-m ruff check {{.SOURCE_FOLDERS}}" }
+
+      - echo 'Running pyright checks...'
+      - task: _pyright
+
+      - echo 'Running deptry checks...'
+      - task: _deptry
+        vars: { COMMAND: "." }
+
+  lint-fix:
+    desc: Fix lint issues
+    cmds:
+      - echo 'Running poetry fixes...'
+      - poetry lock
+      - poetry check
+
+      - echo 'Running toml-sort fixes...'
+      - task: _toml-sort
+        vars: { COMMAND: "--in-place {{.TOML_FILES}}" }
+
+      - echo 'Running sort-all fixes...'
+      - task: _sort_all
+        vars: { COMMAND: "--no-error-on-fix {{.SORT_ALL_FILES}}" }
+
+      - echo 'Running ruff fixes...'
+      - task: _python
+        vars: { COMMAND: "-m ruff check --fix {{.SOURCE_FOLDERS}}" }
+
+      - echo 'Running pyright fixes...'
+      - task: _pyright
+
+      - echo 'Running deptry checks...'
+      - task: _deptry
+        vars: { COMMAND: "." }
+
+  test:
+    desc: Run tests
+    cmds:
+      - echo 'Running pytest...'
+      - task: _python
+        vars: { COMMAND: "-m pytest" }
+
+  test-coverage-run:
+    desc: Run tests with coverage
+    cmds:
+      - echo 'Running test coverage...'
+      - task: _python
+        vars: { COMMAND: "-m coverage run -m pytest {{.TEST_FOLDER}}" }
+
+  test-coverage-report:
+    desc: Show test coverage report
+    cmds:
+      - echo 'Reporting test coverage...'
+      - task: _python
+        vars: { COMMAND: "-m coverage report -m" }
+
+  clean:
+    desc: Clean environment
+    cmds:
+      - echo 'Cleaning python dependencies...'
+      - rm -rf {{.PENV}}
+
+      - echo 'Cleaning pytest cache...'
+      - rm -rf .pytest_cache
+
+      - echo 'Cleaning ruff cache...'
+      - rm -rf .ruff_cache
+
+      - echo 'Cleaning coverage results...'
+      - rm -rf .coverage
+      - rm -rf htmlcov
+
+  dependencies-update:
+    desc: Update python dependencies
+    cmds:
+      - echo 'Updating python dependencies...'
+      - uv update
+
+  dependencies-check:
+    desc: Check python dependencies
+    cmds:
+      - echo 'Checking python dependencies...'
+      - poetry show --outdated
+
+  dev-server-start:
+    desc: Start development application
+    cmds:
+      - echo 'Starting server...'
+      - task: _python
+        vars: { COMMAND: "-m bin" }

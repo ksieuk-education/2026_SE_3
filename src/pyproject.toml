@@ -1,0 +1,131 @@
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+
+[dependency-groups]
+dev = [
+  "asyncpg-stubs (>=0.31.0,<0.32.0)",
+  "coverage[toml] (>=7.0.0,<8.0.0)",
+  "deptry (>=0.25.1,<0.26.0)",
+  "httpx (>=0.28.1,<0.29.0)",
+  "pyright (>=1.1.408,<2.0.0)",
+  "pytest (>=9.0.1,<10.0.1)",
+  "pytest-cov (>=4.1.0,<5.0.0)",
+  "pytest_asyncio (>=1.3.0,<2.0.0)",
+  "pyupgrade (>=3.21.2,<4.0.0)",
+  "ruff (>=0.14.6,<0.15.0)",
+  "sort-all (>=1.3.0,<2.0.0)",
+  "testcontainers[postgres] (>=4.8.0,<5.0.0)",
+  "toml-sort (>=0.24.4,<0.25.0)",
+]
+
+[project]
+authors = [{name = "SukharevAI"}]
+dependencies = [
+  "asyncpg (>=0.31.0,<0.32.0)",
+  "dishka (>=1.9.1,<2.0.0)",
+  "fastapi (>=0.135.2,<0.136.0)",
+  "pydantic (>=2.12.5,<3.0.0)",
+  "pydantic-settings (>=2.13.1,<3.0.0)",
+  "pyjwt (>=2.10.1,<3.0.0)",
+  "uvicorn[standard] (>=0.42.0,<0.43.0)",
+]
+description = ""
+name = "2026-se-3"
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
+version = "0.1.0"
+
+[tool.poetry]
+package-mode = false
+
+[tool.pyright]
+exclude = [".pytest_cache", ".venv", "lib/present/grpc", "tests"]
+pythonPlatform = "All"
+pythonVersion = "3.12"
+reportMissingTypeStubs = "none"
+reportPrivateUsage = "information"
+reportPropertyTypeMismatch = "warning"
+reportUninitializedInstanceVariable = "warning"
+reportUnknownMemberType = "none"
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportUntypedFunctionDecorator = "warning"
+typeCheckingMode = "strict"
+useLibraryCodeForTypes = true
+venv = ".venv"
+venvPath = "."
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+exclude = [".pytest_cache", ".venv"]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+extend-ignore = ["D"]
+extend-select = [
+  "UP", # pyupgrade
+]
+ignore = [
+  "ANN001",
+  "ANN003",
+  "ANN201",
+  "ANN202",
+  "ARG001",
+  "COM812",
+  "D200",
+  "D202", # No blank lines allowed after function docstring
+  "D203", # ignoring `incorrect-blank-line-before-class`. Using `no-blank-line-before-class` (D211)
+  "D205",
+  "D212", # ignoring `multi-line-summary-first-line`. Using `multi-line-summary-second-line` (D213)
+  "D400", # First line should end with a period
+  "D415", # First line should end with a period, question mark, or exclamation point
+  "EM101",
+  "ERA001",
+  "PLR0913",
+  "PTH123",
+  "RUF001", # ambiguous-unicode-character-string
+  "RUF002", # ambiguous-unicode-character-docstring
+  "RUF003", # ambiguous-unicode-character-comment
+  "TRY003",
+]
+select = ["ALL"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+  "fastapi.Depends",
+  "fastapi.params.Depends",
+  "fastapi.params.Query",
+  "fastapi.Query",
+  "fastapi.Security",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*/__init__.py" = ["F403", "F405"]
+"*/migrations/*" = [
+  "D103", # missing-docstring-in-public-function
+  "INP001", # implicit-namespace-package
+]
+"tests*/*" = [
+  "ANN204",
+  "D100",
+  "D103",
+  "D104",
+  "DTZ005",
+  "PLR2004",
+  "PT018",
+  "S101",
+  "SLF001",
+  "TC001",
+]
+
+[tool.tomlsort]
+all = true
+ignore_case = true
+in_place = true
+trailing_comma_inline_array = true
